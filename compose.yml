@@ -12,3 +12,18 @@ services:
       POSTGRES_DB: $POSTGRES_DB
     ports:
       - "5432:5432"
+
+  node:
+    image: node:lts
+    user: "node"
+    working_dir: /home/node/app
+    environment:
+      - NODE_ENV=production
+    depends_on:
+      db:
+        condition: service_started
+    volumes:
+      - ./:/home/node/app
+    expose:
+      - "8081"
+    command: "npm start"
