@@ -1,5 +1,5 @@
 ### POST videos
-POST http://localhost:3333/videos
+POST {{base_url}}/videos
 Content-Type: application/json
 
 {
@@ -9,10 +9,10 @@ Content-Type: application/json
 }
 
 ### GET videos
-GET http://localhost:3333/videos
+GET {{base_url}}/videos
 
 ###PUT videos
-PUT http://localhost:3333/videos/clm9zh5nb0000r7bcjnuwuxlv
+PUT {{base_url}}/videos/clman0k340000r7a2f5u1yk0r
 Content-Type: application/json
 
 {
@@ -22,4 +22,4 @@ Content-Type: application/json
 }
 
 ###DELETE videos
-DELETE http://localhost:3333/videos/clm9zh5nb0000r7bcjnuwuxlv
+DELETE {{base_url}}/videos/clman0k340000r7a2f5u1yk0r

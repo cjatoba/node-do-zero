@@ -1,10 +1,11 @@
 import {fastify} from "fastify"
 import {z} from "zod";
-import {PrismaClient} from "@prisma/client"
+import {ReturnEnum} from "./enums"
+import {VideoService} from "./services/video";
 
 const app = fastify()
 
-const prisma = new PrismaClient()
+const videoService = new VideoService()
 
 app.post("/videos", async (request, reply) => {
   const createVideoSchema = z.object({
@@ -15,42 +16,37 @@ app.post("/videos", async (request, reply) => {
 
   const {title, description, duration} = createVideoSchema.parse(request.body)
 
-  await prisma.video.create({
-    data: {
-      title,
-      description,
-      duration,
-    }
-  })
+  const created = await videoService.create({title, description, duration})
+
+  if (created === ReturnEnum.ERROR) {
+    return reply.status(500).send()
+  }
+
   return reply.status(201).send()
 })
 
 app.get("/videos", async () => {
-  const videos = await prisma.video.findMany()
-
-  return {videos}
+  return await videoService.getAll()
 })
 
 app.put("/videos/:id", async (request, reply) => {
-  const videoId = request.params.id
-  const createVideoSchema = z.object({
+  const videoIdSchema = z.object({
+    id: z.string()
+  })
+  const createVideoDataSchema = z.object({
     title: z.string(),
     description: z.string(),
     duration: z.number(),
   })
 
-  const {title, description, duration} = createVideoSchema.parse(request.body)
+  const {id} = videoIdSchema.parse(request.params)
+  const {title, description, duration} = createVideoDataSchema.parse(request.body)
 
-  await prisma.video.update({
-    where: {
-      id: videoId
-    },
-    data: {
-      title,
-      description,
-      duration,
-    }
-  })
+  const updated = await videoService.update(id, {title, description, duration})
+
+  if (updated === ReturnEnum.ERROR) {
+    reply.status(500).send()
+  }
 
   return reply.status(204).send()
 })
@@ -61,13 +57,17 @@ app.delete("/videos/:id", async (request, reply) => {
   })
   const {id} = videoIdSchema.parse(request.params)
 
-  const deleted = await prisma.video.delete({
-    where: {
-      id: id
-    }
-  })
+  const deleted = await videoService.delete(id)
 
-  deleted ? reply.status(204).send() : reply.status(404).send()
+  if (deleted === ReturnEnum.NOT_FOUND) {
+    reply.status(404).send()
+  }
+
+  if (deleted === ReturnEnum.ERROR) {
+    reply.status(500).send()
+  }
+
+  return reply.status(204).send()
 })
 
 app.listen({
